@@ -46,11 +46,5 @@ git clone https://github.com/taidt/project03-operationalizing-a-coworking-space-
 
 Run at ./scripts
 
-## Verifying The Application
-Generate report for check-ins grouped by dates
 
-curl <BASE_URL>/api/reports/daily_usage
-Generate report for check-ins grouped by users
-
-curl <BASE_URL>/api/reports/user_visits
 
