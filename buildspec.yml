@@ -1,7 +1,7 @@
 version: 0.2
 env:
   variables:
-    IMAGE_REPO_NAME: udacity-prj3-ecr
+    IMAGE_REPO_NAME: project03-ecr
     IMAGE_TAG: latest
 phases:
   pre_build:
