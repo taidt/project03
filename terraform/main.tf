@@ -29,14 +29,11 @@ locals {
   vpc_cidr                  = "10.0.0.0/16"
 }
 
-# Create an ECR repository
 resource "aws_ecr_repository" "project03" {
   name = var.prj03_ecr_name
 }
 
 
-
-# Create a VPC for the EKS cluster and the worker nodes
 resource "aws_vpc" "project03" {
   cidr_block = local.vpc_cidr
   tags = tomap({
@@ -45,7 +42,6 @@ resource "aws_vpc" "project03" {
   })
 }
 
-# Create a public subnet for the EKS cluster
 resource "aws_subnet" "project03" {
   count = 2
 
@@ -60,7 +56,6 @@ resource "aws_subnet" "project03" {
   })
 }
 
-# Create an internet gateway for the EKS cluster
 resource "aws_internet_gateway" "project03" {
   vpc_id = aws_vpc.project03.id
 
@@ -69,7 +64,6 @@ resource "aws_internet_gateway" "project03" {
   }
 }
 
-# Create a route table for the EKS cluster
 resource "aws_route_table" "project03" {
   vpc_id = aws_vpc.project03.id
 
@@ -79,7 +73,6 @@ resource "aws_route_table" "project03" {
   }
 }
 
-# Associate the public subnet with the route table
 resource "aws_route_table_association" "project03" {
   count = 2
 
@@ -87,7 +80,6 @@ resource "aws_route_table_association" "project03" {
   route_table_id = aws_route_table.project03.id
 }
 
-# Allow the aws codebuild project to access the ECR repository
 resource "aws_ecr_repository_policy" "project03" {
   repository = aws_ecr_repository.project03.name
   policy = jsonencode({
@@ -113,7 +105,6 @@ resource "aws_ecr_repository_policy" "project03" {
   })
 }
 
-# Create an EKS cluster IAM role
 resource "aws_iam_role" "eks_cluster_role" {
   name = var.prj03_eks_cluster_role
   assume_role_policy = jsonencode({
@@ -131,19 +122,16 @@ resource "aws_iam_role" "eks_cluster_role" {
   })
 }
 
-# Attach the AmazonEKSClusterPolicy to the EKS cluster IAM role
 resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.eks_cluster_role.name
 }
 
-# Attach the AmazonEKSVPCResourceControllerPolicy to the EKS cluster IAM role
 resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSVPCResourceControllerPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
   role       = aws_iam_role.eks_cluster_role.name
 }
 
-# Create a security group for the EKS cluster
 resource "aws_security_group" "eks_cluster_security_group" {
   name        = var.prj03_eks_cluster_security_group
   description = "Cluster communication with worker nodes"
@@ -168,7 +156,6 @@ resource "aws_security_group" "eks_cluster_security_group" {
   }
 }
 
-# Create an EKS cluster
 resource "aws_eks_cluster" "project03" {
   name     = var.prj03_eks_cluster_name
   role_arn = aws_iam_role.eks_cluster_role.arn
@@ -187,7 +174,6 @@ resource "aws_eks_cluster" "project03" {
   }
 }
 
-# Create an EKS worker node IAM role
 resource "aws_iam_role" "eks_worker_node_role" {
   name = var.prj03_eks_worker_node_role
   assume_role_policy = jsonencode({
@@ -205,25 +191,24 @@ resource "aws_iam_role" "eks_worker_node_role" {
   })
 }
 
-# Attach the AmazonEKSWorkerNodePolicy to the EKS worker node IAM role
 resource "aws_iam_role_policy_attachment" "eks_worker_node_AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.eks_worker_node_role.name
 }
 
-# Attach the AmazonEKS_CNI_Policy to the EKS worker node IAM role
+
 resource "aws_iam_role_policy_attachment" "eks_worker_node_AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
   role       = aws_iam_role.eks_worker_node_role.name
 }
 
-# Attach the AmazonEC2ContainerRegistryReadOnly to the EKS worker node IAM role
+
 resource "aws_iam_role_policy_attachment" "eks_worker_node_AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_worker_node_role.name
 }
 
-# Create an EKS Node Group
+
 resource "aws_eks_node_group" "project03" {
   cluster_name    = aws_eks_cluster.project03.name
   node_group_name = var.prj03_eks_worker_node_name
@@ -245,7 +230,7 @@ resource "aws_eks_node_group" "project03" {
   ]
 }
 
-# Create a security group for the EKS worker nodes
+
 resource "aws_security_group" "eks_worker_node_security_group" {
   name        = var.prj03_eks_worker_node_security_group
   description = "Security group for all nodes in the cluster"
@@ -263,7 +248,7 @@ resource "aws_security_group" "eks_worker_node_security_group" {
   }
 }
 
-# Create a security group rule for the EKS worker nodes
+
 resource "aws_security_group_rule" "node-ingress-self" {
   description              = "Allow node to communicate with each other"
   type                     = "ingress"
@@ -274,7 +259,6 @@ resource "aws_security_group_rule" "node-ingress-self" {
   source_security_group_id = aws_security_group.eks_worker_node_security_group.id
 }
 
-# Create a security group rule for the EKS worker nodes
 resource "aws_security_group_rule" "node-ingress-cluster-https" {
   description              = "Allow pods running extension API servers on port 443 to receive communication from cluster API server"
   type                     = "ingress"
@@ -285,7 +269,6 @@ resource "aws_security_group_rule" "node-ingress-cluster-https" {
   source_security_group_id = aws_security_group.eks_cluster_security_group.id
 }
 
-# Create a security group rule for the EKS worker nodes
 resource "aws_security_group_rule" "node-ingress-cluster-others" {
   description              = "Allow pods to communicate with the cluster API Server"
   type                     = "ingress"
@@ -296,7 +279,6 @@ resource "aws_security_group_rule" "node-ingress-cluster-others" {
   source_security_group_id = aws_security_group.eks_cluster_security_group.id
 }
 
-# Create a security group rule for the EKS worker nodes
 resource "aws_security_group_rule" "cluster-ingress-node-https" {
   description              = "Allow pods to communicate with the cluster API Server"
   type                     = "ingress"
@@ -369,14 +351,12 @@ resource "aws_iam_role_policy" "example" {
   policy = data.aws_iam_policy_document.example.json
 }
 
-# Source credential for the codebuild project
 resource "aws_codebuild_source_credential" "example" {
   auth_type   = "PERSONAL_ACCESS_TOKEN"
   server_type = "GITHUB"
   token       = var.prj03_github_access_token
 }
 
-# Create an aws codebuild project for the ECR repository
 resource "aws_codebuild_project" "project03" {
   name          = var.prj03_ecr_name
   description   = "CodeBuild project for the ECR repository"
