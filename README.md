@@ -25,14 +25,23 @@ git clone https://github.com/taidt/project03-operationalizing-a-coworking-space-
 
 ## How to run
 Create AWS resource with terraform
+
 Config Kubect with EKS Cluster Name
+
 Set up PostgreSQL with Helm Chart
+
 Seed data using kubectl port-forward and psql
+
 Create AWS CodePipeline to build and push image to AWS ECR
+
 Create a service and deployment yaml files to deploy web api
+
 Apply configmap, secret, service and deployment yaml files
+
 Create an external load balancer using kubectl expose
+
 Check web api
+
 Check logs from CloudWatch and kubectl logs pod-name
 
 Run at ./scripts
