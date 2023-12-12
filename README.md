@@ -1,49 +1,47 @@
-# project03 22
+## Getting Started
+Start by cloning the starter repository for the project.
 
-step 2: aws eks --region us-east-1 update-kubeconfig --name project03-eks  
-step 3: helm repo add tutai92-pr3 https://charts.bitnami.com/bitnami 
-        helm install --set primary.persistence.enabled=false project03 tutai92-pr3/postgresql
+## Remote Resource Requirements
+This project utilizes Amazon Web Services (AWS). You'll find instructions for using a temporary AWS account on the next page. The AWS resources you'll need to use for the project include:
 
+AWS CLI
+AWS CodeBuild - build Docker images remotely
+AWS ECR - host Docker images
+Kubernetes Environment with AWS EKS - run applications in k8s
+AWS CloudWatch - monitor activity and logs in EKS
+Project Instructions
+Dependencies
+AWS Account
+AWS CLI
+Terraform
+Helm Chart
+PostgresSQL
+VSCode
+Clone the project
 
-** Please be patient while the chart is being deployed **
+Clone Project Code
 
-PostgreSQL can be accessed via port 5432 on the following DNS names from within your cluster:
+git clone https://github.com/taidt/project03-operationalizing-a-coworking-space-microservice
 
-    project03-postgresql.default.svc.cluster.local - Read/Write connection
+## How to run
+Create AWS resource with terraform
+Config Kubect with EKS Cluster Name
+Set up PostgreSQL with Helm Chart
+Seed data using kubectl port-forward and psql
+Create AWS CodePipeline to build and push image to AWS ECR
+Create a service and deployment yaml files to deploy web api
+Apply configmap, secret, service and deployment yaml files
+Create an external load balancer using kubectl expose
+Check web api
+Check logs from CloudWatch and kubectl logs pod-name
 
-To get the password for "postgres" run:
+Run at ./scripts
 
-    export POSTGRES_PASSWORD=$(kubectl get secret --namespace default project03-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)     
+## Verifying The Application
+Generate report for check-ins grouped by dates
 
-To connect to your database run the following command:
+curl <BASE_URL>/api/reports/daily_usage
+Generate report for check-ins grouped by users
 
-    kubectl run project03-postgresql-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:16.1.0-debian-11-r15 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
-      --command -- psql --host project03-postgresql -U postgres -d postgres -p 5432
-
-    > NOTE: If you access the container using bash, make sure that you execute "/opt/bitnami/scripts/postgresql/entrypoint.sh /bin/bash" in order to avoid the error "psql: local user with ID 1001} does not exist"
-
-To connect to your database from outside the cluster execute the following commands:
-
-    kubectl port-forward --namespace default svc/project03-postgresql 5432:5432 &
-    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432
-
-
-    kubectl port-forward --namespace default svc/<SERVICE_NAME>-postgresql 5432:5432 &
-
-    kubectl port-forward --namespace default svc/project03-postgresql 5432:5432 & PGPASSWORD="a1lNekdPMnNTUA==" psql --host 127.0.0.1 -U postgres -d postgres -p 5432 < ./db/1_create_tables.sql
-
-    kubectl port-forward --namespace default svc/$TYPE_NAME $LOCAL_PORT:$REMOTE_PORT > /dev/null 2>&1
-
-    kubectl port-forward --namespace default svc/project03-postgresql 5432:5432 > /dev/null 2>&1
-
-
-    kubectl apply -f ./eks_deployments/env-secret.yaml
-
-    kubectl apply -f ./eks_deployments/env-configmap.yaml
-
-    kubectl apply -f ./eks_deployments/app-deployment.yaml
-
-    kubectl apply -f ./eks_deployments/app-service.yaml
-
-    kubectl expose deployment app-coworking --type=LoadBalancer --name=publicbackend
+curl <BASE_URL>/api/reports/user_visits
 
